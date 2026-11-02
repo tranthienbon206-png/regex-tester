@@ -1,0 +1,393 @@
+
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Regex Tester - Công cụ kiểm tra biểu thức chính quy</title>
+  <meta name="description" content="Công cụ kiểm tra biểu thức chính quy Regex Tester trực tuyến miễn phí. Hỗ trợ tìm kiếm, đánh dấu kết quả khớp, kiểm tra nhóm bắt và thay thế văn bản.">
+  <meta name="keywords" content="Regex Tester, kiểm tra biểu thức chính quy, công cụ Regex online">
+  <script src="https://cdn.tailwindcss.com"></script>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;600;700&display=swap" rel="stylesheet">
+  <style>
+    * { font-family: 'Roboto', sans-serif; }
+    body { background: #f5f6f8; }
+    .main-card { background: white; border: 1px solid #e5e7eb; border-radius: 14px; }
+    .field {
+      width: 100%; border: 1px solid #dfe3e8; border-radius: 9px;
+      padding: 12px; outline: none; transition: .2s; background: white;
+    }
+    .field:focus { border-color: #eab308; box-shadow: 0 0 0 3px rgba(234,179,8,.12); }
+    .primary-btn {
+      background: #facc15; color: #222; padding: 10px 17px;
+      border-radius: 8px; font-weight: 600; transition: .2s;
+    }
+    .primary-btn:hover { background: #eab308; }
+    .secondary-btn {
+      background: white; border: 1px solid #dfe3e8; padding: 9px 14px;
+      border-radius: 8px; font-weight: 500; transition: .2s;
+    }
+    .secondary-btn:hover { background: #f8fafc; }
+    .match {
+      background: #fef08a; color: #713f12; border-radius: 3px;
+      padding: 1px 2px; font-weight: 600;
+    }
+    .result-box {
+      background: #fafafa; border: 1px solid #e5e7eb;
+      border-radius: 9px; padding: 13px; min-height: 100px;
+      white-space: pre-wrap; overflow-wrap: anywhere;
+    }
+    .flag-label {
+      display: flex; align-items: center; gap: 6px;
+      font-size: 14px; color: #4b5563; cursor: pointer;
+    }
+    .flag-label input { accent-color: #eab308; width: 15px; height: 15px; }
+    textarea { resize: vertical; }
+    .stat { background: #f9fafb; border: 1px solid #e5e7eb; border-radius: 9px; padding: 13px; }
+  </style>
+</head>
+
+<body class="text-gray-800">
+  <main class="max-w-5xl mx-auto px-4 py-7 md:py-10">
+
+    <div class="mb-6">
+      <div class="flex items-center gap-2 mb-2">
+        <span class="bg-yellow-100 text-yellow-800 text-xs font-semibold px-3 py-1 rounded-full">DEVELOPER TOOL</span>
+        <span class="text-gray-400 text-xs">Regex Tester</span>
+      </div>
+      <h1 class="text-2xl md:text-3xl font-bold mb-2">Kiểm tra biểu thức chính quy</h1>
+      <p class="text-gray-500 text-sm md:text-base">
+        Kiểm tra Regex, tìm nội dung khớp và xem kết quả thay thế văn bản nhanh chóng.
+      </p>
+    </div>
+
+    <section class="main-card p-4 md:p-6 mb-5">
+      <div class="flex items-center justify-between gap-3 mb-3">
+        <label for="pattern" class="font-semibold text-sm">Biểu thức chính quy (Regex)</label>
+        <button onclick="loadSample()" class="text-sm text-yellow-700 font-medium hover:underline">Dùng ví dụ</button>
+      </div>
+
+      <div class="flex items-center gap-2">
+        <span class="text-gray-400 font-mono text-xl">/</span>
+        <input id="pattern" class="field font-mono" type="text" placeholder="Ví dụ: \w+@\w+\.\w+">
+        <span class="text-gray-400 font-mono text-xl">/</span>
+      </div>
+
+      <div class="mt-4">
+        <p class="text-sm font-medium mb-2">Flags</p>
+        <div class="flex flex-wrap gap-x-5 gap-y-3">
+          <label class="flag-label"><input type="checkbox" id="flagG" checked> g <span class="text-gray-400">Global</span></label>
+          <label class="flag-label"><input type="checkbox" id="flagI"> i <span class="text-gray-400">Ignore case</span></label>
+          <label class="flag-label"><input type="checkbox" id="flagM"> m <span class="text-gray-400">Multiline</span></label>
+          <label class="flag-label"><input type="checkbox" id="flagS"> s <span class="text-gray-400">Dot all</span></label>
+          <label class="flag-label"><input type="checkbox" id="flagU"> u <span class="text-gray-400">Unicode</span></label>
+        </div>
+      </div>
+
+      <div class="flex flex-wrap gap-2 mt-5">
+        <button onclick="testRegex()" class="primary-btn">Kiểm tra Regex</button>
+        <button onclick="clearAll()" class="secondary-btn">Xóa tất cả</button>
+      </div>
+
+      <div id="error" class="hidden mt-4 p-3 rounded-lg bg-red-50 text-red-600 text-sm"></div>
+    </section>
+
+    <section class="main-card p-4 md:p-6 mb-5">
+      <div class="flex items-center justify-between mb-3 gap-2">
+        <label for="inputText" class="font-semibold text-sm">Văn bản cần kiểm tra</label>
+        <span class="text-xs text-gray-400" id="charCount">0 ký tự</span>
+      </div>
+      <textarea id="inputText" rows="7" class="field font-mono text-sm" placeholder="Nhập văn bản bạn muốn kiểm tra..."></textarea>
+    </section>
+
+    <section class="mb-5">
+      <h2 class="font-bold text-lg mb-3">Kết quả kiểm tra</h2>
+      <div class="grid grid-cols-1 sm:grid-cols-3 gap-3 mb-4">
+        <div class="stat">
+          <p class="text-xs text-gray-500 mb-1">Số kết quả khớp</p>
+          <p id="matchCount" class="text-2xl font-bold">0</p>
+        </div>
+        <div class="stat">
+          <p class="text-xs text-gray-500 mb-1">Số ký tự văn bản</p>
+          <p id="textLength" class="text-2xl font-bold">0</p>
+        </div>
+        <div class="stat">
+          <p class="text-xs text-gray-500 mb-1">Trạng thái</p>
+          <p id="status" class="text-lg font-bold text-gray-500">Chưa kiểm tra</p>
+        </div>
+      </div>
+
+      <div class="main-card p-4 md:p-5">
+        <div class="flex items-center justify-between gap-2 mb-3">
+          <h3 class="font-semibold text-sm">Văn bản được đánh dấu</h3>
+          <button onclick="copyHighlightedText()" class="secondary-btn text-sm">Sao chép văn bản</button>
+        </div>
+        <div id="highlightResult" class="result-box text-sm font-mono">Kết quả sẽ hiển thị tại đây...</div>
+      </div>
+    </section>
+
+    <section class="main-card p-4 md:p-6 mb-5">
+      <div class="flex items-center justify-between mb-3">
+        <h2 class="font-bold text-lg">Chi tiết kết quả khớp</h2>
+        <span id="detailCount" class="text-xs text-gray-400">0 kết quả</span>
+      </div>
+      <div id="matchDetails" class="space-y-2 text-sm">
+        <p class="text-gray-400">Chưa có dữ liệu.</p>
+      </div>
+    </section>
+
+    <section class="main-card p-4 md:p-6 mb-5">
+      <h2 class="font-bold text-lg mb-3">Thay thế văn bản</h2>
+      <label for="replacement" class="block text-sm font-medium mb-2">Nội dung thay thế</label>
+      <input id="replacement" type="text" class="field mb-3" placeholder="Nhập nội dung thay thế...">
+      <div class="flex flex-wrap gap-2 mb-4">
+        <button onclick="replaceText()" class="primary-btn">Thực hiện thay thế</button>
+        <button onclick="copyReplacement()" class="secondary-btn">Sao chép kết quả</button>
+      </div>
+      <div id="replacementResult" class="result-box text-sm font-mono">Kết quả thay thế sẽ hiển thị tại đây...</div>
+    </section>
+
+    <section class="main-card p-4 md:p-6">
+      <h2 class="font-bold text-lg mb-3">Hướng dẫn sử dụng</h2>
+      <div class="space-y-3 text-sm text-gray-600">
+        <p><strong class="text-gray-800">1.</strong> Nhập biểu thức Regex vào ô kiểm tra.</p>
+        <p><strong class="text-gray-800">2.</strong> Nhập văn bản cần tìm kiếm.</p>
+        <p><strong class="text-gray-800">3.</strong> Chọn các flags phù hợp với nhu cầu.</p>
+        <p><strong class="text-gray-800">4.</strong> Nhấn Kiểm tra Regex để xem kết quả khớp.</p>
+        <p><strong class="text-gray-800">5.</strong> Sử dụng chức năng thay thế nếu muốn đổi nội dung tìm thấy.</p>
+      </div>
+      <div class="mt-5 pt-4 border-t border-gray-100">
+        <p class="font-semibold text-sm mb-2">Một số biểu thức Regex thường dùng</p>
+        <div class="space-y-2 text-sm">
+          <button onclick="setPattern('\\d+')" class="block text-left w-full hover:text-yellow-700"><code class="bg-gray-100 px-2 py-1 rounded">\d+</code> <span class="text-gray-500 ml-2">Tìm số</span></button>
+          <button onclick="setPattern('[a-zA-Z]+')" class="block text-left w-full hover:text-yellow-700"><code class="bg-gray-100 px-2 py-1 rounded">[a-zA-Z]+</code> <span class="text-gray-500 ml-2">Tìm chữ cái</span></button>
+          <button onclick="setPattern('\\w+@\\w+\\.\\w+')" class="block text-left w-full hover:text-yellow-700"><code class="bg-gray-100 px-2 py-1 rounded">\w+@\w+\.\w+</code> <span class="text-gray-500 ml-2">Tìm email đơn giản</span></button>
+          <button onclick="setPattern('https?://[^\\s]+')" class="block text-left w-full hover:text-yellow-700"><code class="bg-gray-100 px-2 py-1 rounded">https?://[^\s]+</code> <span class="text-gray-500 ml-2">Tìm đường dẫn URL</span></button>
+        </div>
+      </div>
+    </section>
+
+    <footer class="text-center text-xs text-gray-400 mt-7">
+      Regex Tester – Công cụ kiểm tra biểu thức chính quy trực tuyến
+    </footer>
+  </main>
+
+<script>
+  let currentMatches = [];
+  let currentRegex = null;
+  let currentText = '';
+
+  const $ = id => document.getElementById(id);
+
+  function getFlags() {
+    return ['g', 'i', 'm', 's', 'u']
+      .filter(flag => $('flag' + flag.toUpperCase()).checked)
+      .join('');
+  }
+
+  function escapeHtml(text) {
+    return String(text).replace(/[&<>"']/g, char => ({
+      '&': '&amp;',
+      '<': '&lt;',
+      '>': '&gt;',
+      '"': '&quot;',
+      "'": '&#39;'
+    })[char]);
+  }
+
+  function loadSample() {
+    $('pattern').value = '\\w+@\\w+\\.\\w+';
+    $('inputText').value =
+      'Thông tin liên hệ:\nEmail 1: hello@gmail.com\nEmail 2: support@yahoo.com\nEmail 3: admin@example.com\nĐây là một đoạn văn bản mẫu để kiểm tra Regex.';
+    $('flagG').checked = true;
+    $('flagI').checked = false;
+    testRegex();
+  }
+
+  function setPattern(pattern) {
+    $('pattern').value = pattern;
+    testRegex();
+    $('pattern').scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }
+
+  function testRegex() {
+    const pattern = $('pattern').value;
+    const flags = getFlags();
+    const text = $('inputText').value;
+
+    $('error').classList.add('hidden');
+    currentMatches = [];
+    currentRegex = null;
+    currentText = text;
+
+    try {
+      const regex = new RegExp(pattern, flags);
+      currentRegex = regex;
+      const searchRegex = new RegExp(pattern, flags.includes('g') ? flags : flags + 'g');
+
+      let match;
+      let safetyCount = 0;
+
+      while ((match = searchRegex.exec(text)) !== null) {
+        currentMatches.push({
+          value: match[0],
+          index: match.index,
+          groups: Array.from(match).slice(1)
+        });
+
+        safetyCount++;
+        if (safetyCount > 5000) break;
+
+        if (match[0] === '') {
+          searchRegex.lastIndex += 1;
+          if (searchRegex.lastIndex > text.length) break;
+        }
+      }
+
+      renderResults();
+    } catch (error) {
+      $('error').textContent = 'Biểu thức Regex không hợp lệ: ' + error.message;
+      $('error').classList.remove('hidden');
+      $('matchCount').textContent = '0';
+      $('status').textContent = 'Lỗi Regex';
+      $('status').className = 'text-lg font-bold text-red-600';
+      $('highlightResult').textContent = 'Không thể hiển thị kết quả.';
+      $('matchDetails').innerHTML = '<p class="text-red-500">Vui lòng kiểm tra lại biểu thức Regex.</p>';
+      $('detailCount').textContent = '0 kết quả';
+      $('replacementResult').textContent = 'Không thể thực hiện thay thế.';
+    }
+  }
+
+  function renderResults() {
+    $('matchCount').textContent = currentMatches.length;
+    $('textLength').textContent = currentText.length;
+    $('charCount').textContent = currentText.length + ' ký tự';
+    $('detailCount').textContent = currentMatches.length + ' kết quả';
+
+    $('status').textContent = currentMatches.length > 0 ? 'Đã tìm thấy' : 'Không tìm thấy';
+    $('status').className = currentMatches.length > 0
+      ? 'text-lg font-bold text-green-600'
+      : 'text-lg font-bold text-gray-500';
+
+    let html = '';
+    let lastIndex = 0;
+
+    currentMatches.forEach(item => {
+      html += escapeHtml(currentText.slice(lastIndex, item.index));
+      html += '<mark class="match">' + escapeHtml(item.value) + '</mark>';
+      lastIndex = item.index + item.value.length;
+    });
+
+    html += escapeHtml(currentText.slice(lastIndex));
+
+    $('highlightResult').innerHTML = html || '<span class="text-gray-400">Không có nội dung.</span>';
+
+    if (currentMatches.length === 0) {
+      $('matchDetails').innerHTML = '<p class="text-gray-400">Không tìm thấy kết quả khớp.</p>';
+      return;
+    }
+
+    $('matchDetails').innerHTML = currentMatches.map((item, index) => {
+      const groups = item.groups.map((group, groupIndex) =>
+        `<p class="text-xs text-gray-500 mt-1">Nhóm ${groupIndex + 1}: <code>${escapeHtml(group ?? 'Không có')}</code></p>`
+      ).join('');
+
+      return `
+        <div class="border border-gray-200 rounded-lg p-3">
+          <div class="flex flex-wrap items-center justify-between gap-2">
+            <span class="font-semibold">Kết quả ${index + 1}</span>
+            <span class="text-xs text-gray-400">Vị trí: ${item.index} – ${item.index + item.value.length}</span>
+          </div>
+          <p class="mt-2 break-all"><code class="bg-yellow-50 px-2 py-1 rounded">${escapeHtml(item.value)}</code></p>
+          ${groups}
+        </div>
+      `;
+    }).join('');
+  }
+
+  function replaceText() {
+    try {
+      const regex = new RegExp($('pattern').value, getFlags());
+      const result = currentText.replace(regex, $('replacement').value);
+      $('replacementResult').textContent = result;
+    } catch (error) {
+      $('replacementResult').textContent = 'Không thể thay thế: ' + error.message;
+    }
+  }
+
+  function copyText(text) {
+    if (navigator.clipboard && window.isSecureContext) {
+      navigator.clipboard.writeText(text)
+        .then(() => alert('Đã sao chép thành công!'))
+        .catch(() => fallbackCopy(text));
+    } else {
+      fallbackCopy(text);
+    }
+  }
+
+  function fallbackCopy(text) {
+    const area = document.createElement('textarea');
+    area.value = text;
+    area.style.position = 'fixed';
+    area.style.opacity = '0';
+    document.body.appendChild(area);
+    area.select();
+
+    try {
+      document.execCommand('copy');
+      alert('Đã sao chép thành công!');
+    } catch {
+      alert('Không thể sao chép nội dung.');
+    }
+
+    area.remove();
+  }
+
+  function copyHighlightedText() {
+    copyText(currentText);
+  }
+
+  function copyReplacement() {
+    copyText($('replacementResult').textContent);
+  }
+
+  function clearAll() {
+    $('pattern').value = '';
+    $('inputText').value = '';
+    $('replacement').value = '';
+    $('flagG').checked = true;
+    $('flagI').checked = false;
+    $('flagM').checked = false;
+    $('flagS').checked = false;
+    $('flagU').checked = false;
+
+    currentMatches = [];
+    currentRegex = null;
+    currentText = '';
+
+    $('error').classList.add('hidden');
+    $('charCount').textContent = '0 ký tự';
+    $('matchCount').textContent = '0';
+    $('textLength').textContent = '0';
+    $('status').textContent = 'Chưa kiểm tra';
+    $('status').className = 'text-lg font-bold text-gray-500';
+    $('highlightResult').textContent = 'Kết quả sẽ hiển thị tại đây...';
+    $('matchDetails').innerHTML = '<p class="text-gray-400">Chưa có dữ liệu.</p>';
+    $('detailCount').textContent = '0 kết quả';
+    $('replacementResult').textContent = 'Kết quả thay thế sẽ hiển thị tại đây...';
+  }
+
+  $('inputText').addEventListener('input', () => {
+    $('charCount').textContent = $('inputText').value.length + ' ký tự';
+  });
+
+  $('pattern').addEventListener('keydown', event => {
+    if (event.key === 'Enter') testRegex();
+  });
+
+  loadSample();
+</script>
+</body>
+</html>
